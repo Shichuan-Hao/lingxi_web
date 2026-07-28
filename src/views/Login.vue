@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="logo">
-        <img src="../assets/deepseek.svg" alt="AssistGen" />
+        <span class="logo-text"><span class="logo-highlight">灵犀</span><span class="logo-pulse"></span></span>
       </div>
       
       <h2 class="login-title">{{ activeTab === 'login' ? '账号登录' : '注册账号' }}</h2>
@@ -70,12 +70,13 @@
 
         <div class="other-login" v-if="activeTab === 'login'">
           <div class="divider">
-            <span>其他登录方式</span>
+            <span>其它登录方式</span>
           </div>
-          <button class="wechat-btn" @click="handleWechatLogin">
-            <img src="../assets/wechat.svg" alt="WeChat" />
-            使用微信自动登录
-          </button>
+          <div class="social-icons">
+            <button class="wechat-icon-btn" @click="handleWechatLogin" title="微信登录">
+              <img src="../assets/wechat.svg" alt="WeChat" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -282,15 +283,46 @@ watch(() => form.value.password, (val) => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #1e1e1e;
+  background: linear-gradient(135deg, #e0e7f0 0%, #d0dce8 30%, #c8d8e8 60%, #e8eef5 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-container::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .login-box {
   width: 400px;
   padding: 40px;
-  background: #2d2d2d;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 1;
 }
 
 .logo {
@@ -298,14 +330,40 @@ watch(() => form.value.password, (val) => {
   margin-bottom: 32px;
 }
 
-.logo img {
-  height: 40px;
+.logo-text {
+  font-size: 32px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-highlight {
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.logo-pulse {
+  width: 8px;
+  height: 8px;
+  background: #00d4ff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: logoPulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes logoPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.5); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
 }
 
 .login-title {
-  color: #fff;
+  color: #1e293b;
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   margin-bottom: 32px;
 }
@@ -313,14 +371,15 @@ watch(() => form.value.password, (val) => {
 .register-link {
   text-align: center;
   margin-top: 16px;
-  color: #888;
+  color: #64748b;
   font-size: 14px;
 }
 
 .register-link a {
-  color: #4b4bff;
+  color: #0891b2;
   text-decoration: none;
   margin-left: 8px;
+  font-weight: 500;
 }
 
 .register-link a:hover {
@@ -333,18 +392,24 @@ watch(() => form.value.password, (val) => {
 
 .input-group input {
   width: 100%;
-  padding: 12px;
-  background: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #fff;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #1e293b;
   font-size: 14px;
   transition: all 0.2s;
 }
 
+.input-group input::placeholder {
+  color: #94a3b8;
+}
+
 .input-group input:focus {
-  border-color: #4b4bff;
+  border-color: #00d4ff;
   outline: none;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
 }
 
 .agreement {
@@ -352,34 +417,39 @@ watch(() => form.value.password, (val) => {
   align-items: center;
   gap: 8px;
   margin-bottom: 24px;
-  color: #888;
+  color: #64748b;
   font-size: 14px;
 }
 
 .agreement a {
-  color: #4b4bff;
+  color: #0891b2;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background: #4b4bff;
+  background: linear-gradient(135deg, #00d4ff, #6366f1);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #fff;
   font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .submit-btn:hover {
-  background: #5c5cff;
+  background: linear-gradient(135deg, #00e5ff, #7c3aed);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35);
+  transform: translateY(-1px);
 }
 
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .other-login {
@@ -390,7 +460,7 @@ watch(() => form.value.password, (val) => {
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  color: #666;
+  color: #94a3b8;
   font-size: 14px;
 }
 
@@ -399,33 +469,42 @@ watch(() => form.value.password, (val) => {
   content: '';
   flex: 1;
   height: 1px;
-  background: #333;
+  background: #e2e8f0;
   margin: 0 16px;
 }
 
-.wechat-btn {
-  width: 100%;
-  padding: 12px;
-  background: #1AAD19;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 16px;
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.wechat-icon-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
+  padding: 0;
 }
 
-.wechat-btn:hover {
-  background: #2abd29;
+.wechat-icon-btn:hover {
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-.wechat-btn img {
-  width: 24px;
-  height: 24px;
+.wechat-icon-btn img {
+  width: 28px;
+  height: 28px;
 }
 
 .error {

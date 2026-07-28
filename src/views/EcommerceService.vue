@@ -22,7 +22,7 @@
       <div class="header-main-container">
         <div class="main-header">
           <div class="logo" @click="backToMain">
-            <div class="logo-box">赋范</div>
+            <div class="logo-box">灵犀</div>
           </div>
           <div class="search-box">
             <input type="text" placeholder="小白熊恒温调奶器" v-model="searchInput"/>
@@ -383,16 +383,19 @@ const sendMessage = async () => {
     // 创建FormData
     const formData = new FormData()
     formData.append('query', userQuestion)
-    formData.append('user_id', userId)
+    formData.append('user_id', parseInt(userId))
     
     // 添加会话ID
     if (conversationId.value) {
-      formData.append('conversation_id', conversationId.value)
+      formData.append('conversation_id', parseInt(conversationId.value))
     }
     
     // 调用API
-    const response = await fetch('http://localhost:8000/api/langgraph/query', {
+    const response = await fetch('/api/langgraph/query', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
       body: formData
     })
     
@@ -556,17 +559,20 @@ const handleImageUpload = async (event: Event) => {
     // 直接发送图片到langgraph API
     const formData = new FormData()
     formData.append('query', '用户上传了图片，需要调用视觉模型进行分析')
-    formData.append('user_id', userId)
+    formData.append('user_id', parseInt(userId))
     formData.append('image', file)
     
     // 添加会话ID
     if (conversationId.value) {
-      formData.append('conversation_id', conversationId.value)
+      formData.append('conversation_id', parseInt(conversationId.value))
     }
 
     // 调用API
-    const response = await fetch('http://localhost:8000/api/langgraph/query', {
+    const response = await fetch('/api/langgraph/query', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
       body: formData
     })
 
@@ -687,7 +693,7 @@ onMounted(() => {
 }
 
 .login-info a {
-  color: #ff4d4f;
+  color: #00b4d8;
   margin: 0 5px;
   text-decoration: none;
 }
@@ -703,11 +709,11 @@ onMounted(() => {
 }
 
 .top-nav a:hover {
-  color: #ff4d4f;
+  color: #00b4d8;
 }
 
 .badge {
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   border-radius: 50%;
   font-size: 10px;
@@ -737,7 +743,7 @@ onMounted(() => {
 .logo-box {
   width: 120px;
   height: 40px;
-  background-color: #ff4d4f;
+  background: linear-gradient(135deg, #00d4ff, #6366f1);
   color: white;
   font-size: 24px;
   font-weight: bold;
@@ -759,7 +765,7 @@ onMounted(() => {
   flex: 1;
   height: 100%;
   padding: 0 15px;
-  border: 2px solid #ff4d4f;
+  border: 2px solid #00b4d8;
   border-right: none;
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
@@ -770,7 +776,7 @@ onMounted(() => {
 .search-btn {
   width: 80px;
   height: 100%;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   border: none;
   border-top-right-radius: 20px;
@@ -799,7 +805,7 @@ onMounted(() => {
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   font-size: 10px;
   width: 15px;
@@ -811,7 +817,7 @@ onMounted(() => {
 }
 
 .nav-wrapper {
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   width: 100%;
 }
 
@@ -831,7 +837,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #d23c3e;
+  background: linear-gradient(135deg, #00d4ff, #6366f1);
   color: white;
   font-weight: bold;
   font-size: 14px;
@@ -897,7 +903,7 @@ onMounted(() => {
 
 .category-list li:hover {
   background-color: #f5f5f5;
-  color: #ff4d4f;
+  color: #00b4d8;
 }
 
 .icon {
@@ -920,7 +926,7 @@ onMounted(() => {
 .main-banner {
   width: 100%;
   height: 300px;
-  background: linear-gradient(135deg, #ffeeee 0%, #ddefbb 100%);
+  background: linear-gradient(135deg, #e0f7fa 0%, #ddefbb 100%);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1074,14 +1080,14 @@ onMounted(() => {
 .product-price {
   font-size: 18px;
   font-weight: bold;
-  color: #ff4d4f;
+  color: #00b4d8;
   margin-bottom: 10px;
 }
 
 .add-to-cart-btn {
   width: 100%;
   height: 36px;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: #fff;
   border: none;
   border-radius: 18px;
@@ -1090,7 +1096,7 @@ onMounted(() => {
 }
 
 .add-to-cart-btn:hover {
-  background-color: #ff7875;
+  background-color: #00c4e0;
 }
 
 /* 热销商品区域样式 */
@@ -1209,14 +1215,14 @@ onMounted(() => {
 .product-price {
   font-size: 18px;
   font-weight: bold;
-  color: #ff4d4f;
+  color: #00b4d8;
   margin-bottom: 10px;
 }
 
 .add-to-cart-btn {
   width: 100%;
   height: 36px;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: #fff;
   border: none;
   border-radius: 18px;
@@ -1225,7 +1231,7 @@ onMounted(() => {
 }
 
 .add-to-cart-btn:hover {
-  background-color: #ff7875;
+  background-color: #00c4e0;
 }
 
 /* 客服浮动按钮样式 */
@@ -1233,21 +1239,21 @@ onMounted(() => {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   border-radius: 50px;
   padding: 15px 20px;
   display: flex;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.4);
   z-index: 999;
   transition: all 0.3s;
 }
 
 .chat-float-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(255, 77, 79, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 180, 216, 0.5);
 }
 
 .chat-icon {
@@ -1278,7 +1284,7 @@ onMounted(() => {
 }
 
 .chat-popup-header {
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
@@ -1325,7 +1331,7 @@ onMounted(() => {
 
 .popup-user-message {
   align-self: flex-end;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -1379,7 +1385,7 @@ onMounted(() => {
 }
 
 .chat-popup-input input:focus {
-  border-color: #ff4d4f;
+  border-color: #00b4d8;
 }
 
 .chat-popup-input .upload-btn {
@@ -1409,7 +1415,7 @@ onMounted(() => {
 .chat-popup-input .send-btn {
   width: 70px;
   height: 40px;
-  background-color: #ff4d4f;
+  background-color: #00b4d8;
   color: white;
   border: none;
   border-radius: 20px;
@@ -1455,7 +1461,7 @@ onMounted(() => {
 }
 
 .link-group a:hover {
-  color: #ff4d4f;
+  color: #00b4d8;
 }
 
 .copyright {
@@ -1551,6 +1557,6 @@ onMounted(() => {
 }
 
 .links-list a:hover {
-  color: #ff4d4f;
+  color: #00b4d8;
 }
 </style> 

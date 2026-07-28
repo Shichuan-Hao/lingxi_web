@@ -53,6 +53,12 @@ export const useConversationStore = defineStore('conversation', () => {
     currentMessages.value = []
   }
 
+  // 完全清除会话数据（退出登录时调用）
+  const reset = () => {
+    resetConversation()
+    conversations.value = []
+  }
+
   // 删除会话
   const deleteConversation = async (conversationId: number) => {
     try {
@@ -91,6 +97,7 @@ export const useConversationStore = defineStore('conversation', () => {
     loadConversationMessages,
     resetConversation,
     deleteConversation,
-    updateConversationName
+    updateConversationName,
+    reset
   }
 }) 

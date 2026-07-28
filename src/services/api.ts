@@ -326,6 +326,7 @@ export const AuthService = {
 
   async logout() {
     localStorage.removeItem('token')
+    localStorage.removeItem('user_id')
     router.push('/login')
   },
 

@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <div class="app-container" :class="userStore.theme">
     <!-- 侧边栏 -->
     <div class="sidebar" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
       <div class="sidebar-header">
         <div class="logo-wrapper">
-          <span class="logo-text"><span class="logo-highlight">AssistGen</span></span>
+          <span class="logo-text"><span class="logo-highlight">灵犀</span><span class="logo-pulse"></span></span>
           <button class="collapse-btn" @click="toggleSidebar">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 2L2 8L6 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -41,10 +41,10 @@
         <div class="ecommerce-link" @click="goToEcommerce">
           <div class="ecommerce-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="24" height="24" rx="12" fill="#FF4D4F" opacity="0.1"/>
-              <path d="M6 6H7.5L8 9M8 9L9.5 16H16L17.5 9H8Z" stroke="#FF4D4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="10.5" cy="19" r="1" fill="#FF4D4F"/>
-              <circle cx="15.5" cy="19" r="1" fill="#FF4D4F"/>
+              <rect width="24" height="24" rx="12" fill="#fff" opacity="0.15"/>
+              <path d="M6 6H7.5L8 9M8 9L9.5 16H16L17.5 9H8Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10.5" cy="19" r="1" fill="#fff"/>
+              <circle cx="15.5" cy="19" r="1" fill="#fff"/>
             </svg>
           </div>
           <span class="ecommerce-text">电商客服</span>
@@ -91,7 +91,7 @@
         <!-- 初始状态：欢迎消息和输入框在一起居中 -->
         <div v-if="!messages.length && !uploadedFile" class="initial-state">
           <div class="welcome-message">
-            <h2>我是 AssistGen, 很高兴见到你!</h2>
+            <h2>我是 <span>灵犀</span>, 很高兴见到你!</h2>
             <p>我可以帮你写代码、读文件、写作各种创意内容，请把你的任务交给我吧~</p>
           </div>
           <div class="chat-input">
@@ -100,7 +100,7 @@
                 v-model="userInput"
                 @keyup.enter="sendMessage"
                 type="text"
-                placeholder="给 AssistGen 发送消息"
+                placeholder="给 灵犀 发送消息"
               />
               <div class="button-group">
                 <div class="left-buttons">
@@ -155,25 +155,84 @@
         
         <!-- 对话状态或有文件上传时：消息列表在上，输入框在底部 -->
         <div v-else class="chat-state">
+          <!-- 侧边栏收起时的顶部 Logo -->
+          <div v-if="isSidebarCollapsed" class="chat-header-collapsed">
+            <span class="logo-text-mini"><span class="logo-highlight">灵犀</span></span>
+          </div>
           <div class="chat-messages">
             <div v-for="(message, index) in messages" 
                  :key="index"
                  :class="['message', message.role === 'user' ? 'user-message' : 'assistant-message']">
-              <div class="message-avatar">
-                <!-- 用户头像 -->
-                <svg v-if="message.role === 'user'" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-                  <circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M17.9691 20C17.81 17.1085 16.9247 15 12 15C7.07527 15 6.18997 17.1085 6.03087 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <!-- AI头像 -->
-                <svg v-else width="24" height="24" viewBox="0 0 24 24">
-                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" fill="#4b4bff" opacity="0.2"/>
-                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="#4b4bff" stroke-width="1.5"/>
-                  <circle cx="12" cy="12" r="3" fill="#4b4bff" opacity="0.2" stroke="#4b4bff" stroke-width="1.5"/>
+              <!-- 助手头像（左侧） -->
+              <div v-if="message.role === 'assistant'" class="message-avatar assistant-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" fill="#00d4ff" opacity="0.2"/>
+                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z" stroke="#00d4ff" stroke-width="1.5"/>
+                  <circle cx="12" cy="12" r="3" fill="#00d4ff" opacity="0.2" stroke="#00d4ff" stroke-width="1.5"/>
                 </svg>
               </div>
-              <div class="message-content" v-html="renderMessage(message)" @click="handleMessageClick(message, $event)"></div>
+              <!-- 消息内容区域 -->
+              <div class="message-body">
+                <div class="message-content" v-html="renderMessage(message)" @click="handleMessageClick(message, $event)"></div>
+                <!-- 用户消息操作按钮 -->
+                <div v-if="message.role === 'user'" class="message-actions user-actions">
+                  <button class="msg-action-btn" title="复制" @click="copyMessage(message.content)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
+                  <button class="msg-action-btn" title="编辑" @click="editMessage(index)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+                <!-- 助手消息操作按钮 -->
+                <div v-if="message.role === 'assistant' && !message.isLoading" class="message-actions">
+                  <button class="msg-action-btn" title="复制" @click="copyMessage(message.content)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
+                  <button class="msg-action-btn" title="重新生成" @click="regenerateMessage(index)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="1 4 1 10 7 10"/>
+                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                    </svg>
+                  </button>
+                  <button class="msg-action-btn" title="点赞" @click="likeMessage(index)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h12.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                    </svg>
+                  </button>
+                  <button class="msg-action-btn" title="点踩" @click="dislikeMessage(index)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.28a2 2 0 0 0-2 2.3l1.38 9a2 2 0 0 0 2 1.7h9.72"/>
+                      <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/>
+                    </svg>
+                  </button>
+                  <button class="msg-action-btn" title="分享" @click="shareMessage(message.content)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="18" cy="5" r="3"/>
+                      <circle cx="6" cy="12" r="3"/>
+                      <circle cx="18" cy="19" r="3"/>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <!-- 用户头像（右侧） -->
+              <div v-if="message.role === 'user'" class="message-avatar user-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#999" stroke-width="1.5"/>
+                  <circle cx="12" cy="9" r="3" stroke="#999" stroke-width="1.5"/>
+                  <path d="M17.9691 20C17.81 17.1085 16.9247 15 12 15C7.07527 15 6.18997 17.1085 6.03087 20" stroke="#999" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
             </div>
           </div>
           <div class="chat-input-container">
@@ -214,7 +273,7 @@
                   v-model="userInput"
                   @keyup.enter="sendMessage"
                   type="text"
-                  placeholder="给 AssistGen 发送消息"
+                  placeholder="给 灵犀 发送消息"
                 />
                 <div class="button-group">
                   <div class="left-buttons">
@@ -360,7 +419,7 @@
     <!-- 添加悬浮聊天按钮 -->
     <div class="chat-float-button" @click="toggleChatPopup" v-if="!showChatPopup">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#4b4bff"/>
+        <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#00d4ff"/>
         <path d="M7 9H17M7 13H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
     </div>
@@ -409,6 +468,16 @@
       </div>
     </div>
   </div>
+
+  <!-- 复制成功提示 -->
+  <transition name="toast">
+    <div v-if="showCopyToast" class="copy-toast">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span>复制</span>
+    </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -508,6 +577,7 @@ const thinkStartTime = ref<number | null>(null)
 const isSearching = ref(false)
 const searchResults = ref<SearchResult[]>([])
 const showSearchPanel = ref(false)
+const showCopyToast = ref(false)
 const selectedResult = ref<SearchResult | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadedFileInfo = ref<{
@@ -665,11 +735,24 @@ const renderMessage = (message: MessageUI) => {
       // 有思考过程和回复
       return `
         <div class="message-wrapper">
-          <div class="thinking-process">
+          <details class="thinking-details">
+            <summary class="thinking-summary">
+              <span class="thinking-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z"/>
+                </svg>
+              </span>
+              <span class="thinking-title">已思考</span>
+              <span class="thinking-arrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
+            </summary>
             <div class="thinking-content">
               ${md.render(cleanParts[0])}
             </div>
-          </div>
+          </details>
           <div class="message-text">
             ${md.render(cleanParts[1])}
           </div>
@@ -679,11 +762,24 @@ const renderMessage = (message: MessageUI) => {
       // 只有思考过程
       return `
         <div class="message-wrapper">
-          <div class="thinking-process">
+          <details class="thinking-details">
+            <summary class="thinking-summary">
+              <span class="thinking-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L20 7V17L12 22L4 17V7L12 2Z"/>
+                </svg>
+              </span>
+              <span class="thinking-title">已思考</span>
+              <span class="thinking-arrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
+            </summary>
             <div class="thinking-content">
               ${md.render(cleanParts[0])}
             </div>
-          </div>
+          </details>
         </div>
       `;
     }
@@ -972,6 +1068,65 @@ const handleMessageClick = (message: MessageUI, event: MouseEvent) => {
   }
 };
 
+// 复制消息内容
+const copyMessage = async (content: string) => {
+  try {
+    // 移除 HTML 标签，只复制纯文本
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    await navigator.clipboard.writeText(text);
+    showCopyToast.value = true;
+    setTimeout(() => { showCopyToast.value = false; }, 1500);
+  } catch (err) {
+    console.error('复制失败:', err);
+  }
+};
+
+// 重新生成消息
+const regenerateMessage = async (index: number) => {
+  // 找到对应用户消息并重新发送
+  let userIndex = index - 1;
+  while (userIndex >= 0 && messages.value[userIndex].role !== 'user') {
+    userIndex--;
+  }
+  if (userIndex >= 0) {
+    // 移除当前助手消息及之后的消息
+    messages.value.splice(index);
+    // 重新发送用户消息
+    const userMessage = messages.value[userIndex];
+    await sendMessage(userMessage.content);
+  }
+};
+
+// 点赞
+const likeMessage = (index: number) => {
+  console.log('点赞消息', index);
+};
+
+// 点踩
+const dislikeMessage = (index: number) => {
+  console.log('点踩消息', index);
+};
+
+// 分享消息
+const shareMessage = (content: string) => {
+  console.log('分享消息', content);
+};
+
+// 编辑消息
+const editMessage = (index: number) => {
+  const message = messages.value[index];
+  if (message && message.role === 'user') {
+    userInput.value = message.content;
+    messages.value.splice(index);
+    nextTick(() => {
+      const textarea = document.querySelector('.chat-input textarea') as HTMLTextAreaElement;
+      if (textarea) textarea.focus();
+    });
+  }
+};
+
 const handleFileUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   if (!input.files?.length) return
@@ -1058,6 +1213,8 @@ const getFileType = (mimeType: string) => {
 }
 
 const handleLogout = () => {
+  userStore.reset()
+  conversationStore.reset()
   AuthService.logout()
 }
 
@@ -1326,18 +1483,19 @@ const sendPopupMessage = async () => {
     }
     
     // 调用LangGraph接口
-    const response = await fetch('http://localhost:8000/api/langgraph/query', {
+    const formData = new FormData()
+    formData.append('query', userQuestion)
+    formData.append('user_id', parseInt(userId))
+    if (conversationStore.currentConversationId) {
+      formData.append('conversation_id', conversationStore.currentConversationId)
+    }
+    
+    const response = await fetch('/api/langgraph/query', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
-      body: JSON.stringify({
-        query: userQuestion,
-        user_id: parseInt(userId),
-        conversation_id: conversationStore.currentConversationId ? 
-          conversationStore.currentConversationId.toString() : 
-          undefined
-      })
+      body: formData
     })
     
     if (!response.ok) {
@@ -1458,6 +1616,64 @@ body {
   padding: 0;
   overflow: hidden;
 }
+
+/* 复制成功 Toast */
+.copy-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.copy-toast svg {
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+/* Toast 过渡动画 */
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+.toast-enter-to,
+.toast-leave-from {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* 侧边栏收起时的顶部 Logo */
+.chat-header-collapsed {
+  position: sticky;
+  top: 0;
+  text-align: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+  z-index: 5;
+}
+
+.chat-header-collapsed .logo-text-mini {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
 </style>
 
 <style scoped>
@@ -1467,36 +1683,564 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #1e1e1e;
+  background: #fff;
 }
 
-.app-container.light {
-  background-color: #ffffff;
-  color: #333333;
+/* 浅色主题全局覆盖 */
+.app-container .sidebar,
+.app-container .chat-container,
+.app-container .input-wrapper,
+.app-container .message,
+.app-container .welcome-message h2,
+.app-container .message-content,
+.app-container input,
+.app-container .history-title,
+.app-container .user-menu,
+.app-container .menu-item,
+.app-container .user-text,
+.app-container .agent-name,
+.app-container .logo-text,
+.app-container .empty-state-content h3,
+.app-container .detail-header h3,
+.app-container .detail-source,
+.app-container .detail-text,
+.app-container .result-title,
+.app-container .source-name,
+.app-container .chat-popup-header h3,
+.app-container .popup-assistant-message,
+.app-container .file-name,
+.app-container .upload-header,
+.app-container .response-content,
+.app-container ::deep(.message-content),
+.app-container ::deep(.message-content) h1,
+.app-container ::deep(.message-content) h2,
+.app-container ::deep(.message-content) h3,
+.app-container ::deep(.message-content) h4,
+.app-container ::deep(.message-content) h5,
+.app-container ::deep(.message-content) h6,
+.app-container ::deep(.message-content) p,
+.app-container ::deep(.message-content) ul,
+.app-container ::deep(.message-content) ol,
+.app-container ::deep(.message-content) li,
+.app-container ::deep(.thinking-content) p,
+.app-container ::deep(.thinking-content) code,
+.app-container ::deep(.file-info-content) p {
+  color: #333;
 }
 
-.app-container.light .sidebar {
-  background-color: #f5f5f5;
-  border-right-color: #e0e0e0;
+.app-container .chat-container {
+  background: transparent;
 }
 
-.app-container.light .chat-input {
-  background-color: #f5f5f5;
+.app-container .sidebar {
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.app-container.light input {
-  color: #333333;
+.app-container .sidebar-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app-container .logo-wrapper {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.app-container .logo-text {
+  color: #333;
+}
+
+.app-container .history-item {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.app-container .history-item:hover {
+  background: rgba(0, 212, 255, 0.06);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+.app-container .history-item.active {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.app-container .history-title {
+  color: #333;
+}
+
+.app-container .history-time {
+  color: #999;
+}
+
+.app-container .user-section {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app-container .user-menu {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #333;
+}
+
+.app-container .user-menu:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.app-container .user-dropdown {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 212, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.app-container .menu-item {
+  color: #333;
+}
+
+.app-container .menu-item:hover {
+  background: rgba(0, 212, 255, 0.06);
+}
+
+.app-container .input-wrapper {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.app-container .input-wrapper:focus-within {
+  border-color: rgba(0, 212, 255, 0.6);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15), 0 0 40px rgba(0, 212, 255, 0.08), 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.app-container input {
+  color: #333;
+}
+
+.app-container input::placeholder {
+  color: #999;
+}
+
+.app-container .tool-btn {
+  color: #888;
+}
+
+.app-container .tool-btn:hover {
+  color: #333;
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.app-container .send-btn {
+  color: #999;
+}
+
+.app-container .send-btn-active {
+  color: #00d4ff;
+}
+
+.app-container .welcome-message h2 {
+  color: #333;
+}
+
+.app-container .welcome-message p {
+  color: #888;
+}
+
+.app-container .message {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.app-container .user-message {
+  background: #fff;
+}
+
+.app-container .assistant-message {
+  background: #fff;
+}
+
+.app-container .user-message .message-avatar {
+  color: #999;
+}
+
+.app-container .disclaimer-text {
+  color: #999;
+}
+
+.app-container .chat-input-container::before {
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.8));
+}
+
+.app-container .agent-item:hover {
+  background-color: rgba(0, 212, 255, 0.06);
+}
+
+.app-container .agent-item.active {
+  background-color: rgba(0, 212, 255, 0.1);
+}
+
+.app-container .collapse-btn {
+  color: #999;
+}
+
+.app-container .collapse-btn:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.app-container .expand-btn {
+  color: #999;
+}
+
+.app-container .expand-btn:hover {
+  color: #333;
+}
+
+.app-container .search-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.app-container .search-panel-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-container .search-panel-header h3 {
+  color: #333;
+}
+
+.app-container .search-result-item {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app-container .search-result-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.app-container .search-result-item.active {
+  background: rgba(0, 212, 255, 0.06);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+.app-container .result-title {
+  color: #333;
+}
+
+.app-container .result-content {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app-container .result-snippet {
+  color: #666;
+}
+
+.app-container .result-url {
+  color: #999;
+}
+
+.app-container .result-detail-panel {
+  background: rgba(240, 244, 248, 0.95);
+}
+
+.app-container .detail-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-container .back-btn {
+  color: #999;
+}
+
+.app-container .back-btn:hover {
+  color: #333;
+}
+
+.app-container .detail-source {
+  color: #333;
+}
+
+.app-container .detail-date {
+  color: #999;
+}
+
+.app-container .detail-text {
+  color: #333;
+}
+
+.app-container .detail-link {
+  color: #00d4ff;
+  border-color: #00d4ff;
+}
+
+.app-container .detail-link:hover {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.app-container .thinking-details {
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.app-container .thinking-summary {
+  color: #4a90d9;
+}
+
+.app-container .thinking-icon {
+  color: #4a90d9;
+}
+
+.app-container .thinking-content {
+  color: #666;
+}
+
+.app-container .upload-status {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app-container .upload-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  color: #333;
+}
+
+.app-container .file-status {
+  color: #999;
+}
+
+.app-container .modal-content {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.app-container .modal-content h3 {
+  color: #333;
+}
+
+.app-container .modal-content p {
+  color: #666;
+}
+
+.app-container .rename-input {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.app-container button.cancel-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #666;
+}
+
+.app-container button.cancel-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.app-container .chat-popup {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.app-container .chat-popup-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-container .chat-popup-header h3 {
+  color: #333;
+}
+
+.app-container .chat-popup-close {
+  color: #999;
+}
+
+.app-container .chat-popup-close:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.app-container .popup-assistant-message {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.app-container .chat-popup-input {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-container .chat-popup-input input {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.app-container .chat-popup-input input::placeholder {
+  color: #999;
+}
+
+.app-container .popup-send-btn:disabled {
+  background-color: #ccc;
+}
+
+.app-container ::deep(.thinking-content blockquote) {
+  background: rgba(0, 0, 0, 0.04);
+  color: #555;
+}
+
+.app-container ::deep(.thinking-content strong) {
+  color: #00d4ff;
+}
+
+.app-container ::deep(.thinking-content pre) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.app-container ::deep(.search-result) {
+  background: rgba(0, 212, 255, 0.03);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.app-container ::deep(.search-result:hover) {
+  background: rgba(0, 212, 255, 0.06);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+.app-container ::deep(.search-snippet) {
+  color: #666;
+}
+
+.app-container ::deep(.search-url) {
+  color: #999;
+}
+
+.app-container ::deep(.file-message) {
+  background: rgba(0, 212, 255, 0.03);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.app-container ::deep(.file-name) {
+  color: #333;
+}
+
+.app-container ::deep(.file-status) {
+  color: #00d4ff;
+}
+
+.app-container ::deep(.error-message) {
+  color: #ff4b4b;
+  background: rgba(255, 75, 75, 0.08);
+  border: 1px solid rgba(255, 75, 75, 0.2);
+}
+
+.app-container ::deep(.cefa5c26) {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.app-container ::deep(.f3a54b52) {
+  color: #333;
+}
+
+.app-container ::deep(.ee357eab) {
+  color: #999;
+}
+
+.app-container ::deep(.delete-btn) {
+  color: #999;
+}
+
+.app-container ::deep(.delete-btn:hover) {
+  color: #ff4b4b;
+  background: rgba(255, 75, 75, 0.08);
+}
+
+.app-container .logout-btn {
+  color: #999;
+}
+
+.app-container .logout-btn:hover {
+  color: #ff4b4b;
+}
+
+.app-container .action-btn {
+  color: #999;
+}
+
+.app-container .action-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.app-container .close-btn {
+  color: #999;
+}
+
+.app-container .close-btn:hover {
+  color: #333;
+}
+
+.app-container ::deep(.tooltip) {
+  background-color: #333;
+  color: #fff;
+}
+
+.app-container ::deep(.tooltip::after) {
+  border-color: #333 transparent transparent transparent;
+}
+
+.app-container .search-loading-container {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.app-container .search-loading-container:hover {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.app-container .search-loading-text {
+  color: #00d4ff;
+}
+
+.app-container .file-info-container {
+  background: rgba(0, 212, 255, 0.03);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.app-container .file-info-header {
+  color: #00d4ff;
+}
+
+.app-container .file-info-content {
+  color: #333;
+}
+
+.app-container .search-loading-container.error {
+  background: rgba(255, 75, 75, 0.08);
+  border-color: rgba(255, 75, 75, 0.2);
+}
+
+.app-container .search-loading-container.error .search-loading-text {
+  color: #ff4b4b;
 }
 
 /* 左侧栏 */
 .sidebar {
   width: 260px;
   height: 100vh;
-  background-color: #2d2d2d;
-  border-right: 1px solid #333;
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.92) 0%, rgba(10, 13, 20, 0.92) 100%);
+  border-right: 1px solid rgba(0, 212, 255, 0.12);
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .sidebar-collapsed {
@@ -1509,10 +2253,11 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #1e1e1e;
+  background: #fff;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #4a4a4a #1e1e1e;
+  scrollbar-color: #c8d0d8 #e0e7f0;
+  position: relative;
 }
 
 /* 聊天内容区域 */
@@ -1525,6 +2270,7 @@ body {
   transition: all 0.3s ease;
   overflow-y: visible;
   position: relative;
+  background: #fff;
 }
 
 .chat-container::-webkit-scrollbar {
@@ -1534,13 +2280,13 @@ body {
 }
 
 .chat-container::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: #0a0d14;
 }
 
 .chat-container::-webkit-scrollbar-thumb {
   background-color: #4a4a4a;
   border-radius: 4px;
-  border: 2px solid #1e1e1e;
+  border: 2px solid #0a0d14;
 }
 
 .chat-container::-webkit-scrollbar-thumb:hover {
@@ -1589,6 +2335,7 @@ body {
 .chat-messages {
   flex: 1;
   padding-bottom: 280px; /* 增加更多底部padding，确保内容不被遮挡 */
+  background: #fff;
 }
 
 .chat-input-container {
@@ -1598,11 +2345,10 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 800px;
-  background-color: #1e1e1e;
-  padding: 0 20px 20px; /* 修改padding */
-  border-top: 1px solid #333;
+  background: #fff;
+  padding: 0 20px 20px;
   z-index: 10;
-  transition: left 0.3s ease; /* 添加过渡效果 */
+  transition: left 0.3s ease;
 }
 
 /* 当侧边栏收起时的样式 */
@@ -1642,14 +2388,21 @@ body {
 }
 
 .welcome-message h2 {
-  color: #fff;
+  color: #333;
   font-size: 24px;
   margin: 0;
   font-weight: normal;
 }
 
+.welcome-message h2 span {
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
 .welcome-message p {
-  color: #666;
+  color: #888;
   font-size: 13px;
   margin: 0;
   margin-top: 2px;
@@ -1660,7 +2413,7 @@ body {
   padding: 12px 20px;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   animation: fadeIn 0.3s ease;
 }
@@ -1676,43 +2429,106 @@ body {
   }
 }
 
+/* 消息体 */
+.message-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: calc(100% - 40px);
+}
+
 /* 用户消息样式 */
 .user-message {
-  background-color: #1e1e1e;
-  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.user-message .message-body {
+  align-items: flex-end;
+}
+
+.user-message .message-content {
+  background: #fff;
+  border-radius: 18px 18px 4px 18px;
+  padding: 10px 16px;
+  max-width: 80%;
 }
 
 /* AI消息样式 */
 .assistant-message {
-  background: none;
+  justify-content: flex-start;
+}
+
+.assistant-message .message-body {
+  align-items: flex-start;
+  max-width: calc(100% - 40px);
+}
+
+.assistant-message .message-content {
+  padding-top: 2px;
 }
 
 /* 头像样式 */
 .message-avatar {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.user-message .message-avatar {
-  color: #666;
+.user-avatar {
+  order: 1;
 }
 
 /* 消息内容样式 */
 .message-content {
   font-size: 14px;
   line-height: 1.6;
-  color: #fff;
+  color: #333;
+}
+
+/* 消息操作按钮 */
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 1;
+}
+
+.user-actions {
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.msg-action-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-action-btn:hover {
+  color: #666;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 /* 底部个人信息样式 */
 .user-section {
   padding: 16px;
-  border-top: 1px solid #333;
+  border-top: 1px solid rgba(0, 212, 255, 0.12);
   margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
 }
 
 .user-menu {
@@ -1721,13 +2537,16 @@ body {
   gap: 12px;
   padding: 8px 12px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 10px;
   transition: all 0.2s;
-  color: #fff;
+  color: #333;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .user-menu:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.2);
 }
 
 .arrow-icon {
@@ -1739,16 +2558,30 @@ body {
 }
 
 .user-dropdown {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  background: #2d2d2d;
-  border-radius: 8px;
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  width: 228px;
+  background: rgba(20, 24, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
-  margin: 0 8px 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 212, 255, 0.08);
   z-index: 1000;
+  animation: dropdownSlide 0.2s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .menu-item {
@@ -1756,21 +2589,21 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  color: #fff;
+  color: #333;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .menu-item:last-child {
-  color: #ff4b4b;
+  color: #ff6b6b;
 }
 
 .menu-item:last-child:hover {
-  background: rgba(255, 75, 75, 0.1);
+  background: rgba(255, 107, 107, 0.12);
 }
 
 .user-avatar {
@@ -1781,37 +2614,71 @@ body {
 
 .user-text {
   font-size: 14px;
-  color: #fff;
+  color: #333;
 }
 
 /* 侧边栏样式 */
 .sidebar-header {
   padding: 16px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+  position: relative;
+}
+
+.sidebar-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 212, 255, 0.3), transparent);
 }
 
 .logo-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 12px 16px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  margin: 0 16px 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .logo-text {
-  color: #fff;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  background: linear-gradient(90deg, #fff 0%, #e0e0e0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .logo-highlight {
-  background: linear-gradient(90deg, #4b4bff 0%, #6b6bff 100%);
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+/* 灵犀在线状态指示 */
+.logo-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00d4ff;
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.6), 0 0 12px rgba(0, 212, 255, 0.3);
+  animation: logoPulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes logoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.8); }
 }
 
 .collapse-btn {
@@ -1828,7 +2695,7 @@ body {
 }
 
 .collapse-btn:hover {
-  color: #fff;
+  color: #333;
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -1865,7 +2732,7 @@ body {
 
 .agent-name {
   font-size: 0.9rem;
-  color: #fff;
+  color: #333;
 }
 
 .new-chat-btn {
@@ -1877,15 +2744,17 @@ body {
   padding: 8px 12px;
   font-size: 13px;
   color: #fff;
-  background-color: #4b4bff;
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
 }
 
 .new-chat-btn:hover {
-  background-color: #3a3aff;
+  box-shadow: 0 6px 24px rgba(0, 212, 255, 0.35);
+  transform: translateY(-1px);
 }
 
 .new-chat-btn svg {
@@ -1898,16 +2767,25 @@ body {
 /* 输入框容器样式 */
 .input-wrapper {
   width: 100%;
-  background-color: #2d2d2d;
+  background: rgba(20, 24, 35, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 25px;
   padding: 12px 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.12), 0 0 40px rgba(0, 212, 255, 0.06);
 }
 
 input {
   width: 100%;
   background: none;
   border: none;
-  color: #fff;
+  color: #333;
   font-size: 14px;
   outline: none;
   padding: 8px 0;
@@ -1947,17 +2825,17 @@ input::placeholder {
 }
 
 .tool-btn:hover {
-  color: #fff;
-  background: rgba(75, 75, 255, 0.1);
+  color: #333;
+  background: rgba(0, 212, 255, 0.1);
 }
 
 .tool-btn-active {
-  color: #4b4bff !important;
-  background: rgba(75, 75, 255, 0.1);
+  color: #00d4ff !important;
+  background: rgba(0, 212, 255, 0.1);
 }
 
 .tool-btn-active:hover {
-  background: rgba(75, 75, 255, 0.2);
+  background: rgba(0, 212, 255, 0.2);
 }
 
 .send-btn {
@@ -1978,11 +2856,12 @@ input::placeholder {
 }
 
 .send-btn-active {
-  color: #4b4bff;
+  color: #00d4ff;
 }
 
 .send-btn-active:hover {
-  color: #3a3aff;
+  color: #00b8e6;
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.4));
 }
 
 .send-btn .icon {
@@ -2008,7 +2887,7 @@ input::placeholder {
 }
 
 .empty-state-content h3 {
-  color: #fff;
+  color: #333;
   font-size: 1rem;
   margin-bottom: 0.3rem;
 }
@@ -2072,6 +2951,12 @@ input::placeholder {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chat-history::-webkit-scrollbar {
+  display: none;
 }
 
 .history-list {
@@ -2090,7 +2975,7 @@ input::placeholder {
 }
 
 .history-item:hover {
-  background-color: #2d2d2d;
+  background-color: #141823;
 }
 
 .history-item.active {
@@ -2120,17 +3005,17 @@ input::placeholder {
 
 /* Markdown 样式优化 */
 :deep(.message-content) {
-  color: #fff;
+  color: #333;
   font-size: 14px;
   line-height: 1.6;
 
   h1, h2, h3, h4, h5, h6 {
-    color: #fff;
+    color: #333;
     margin: 1em 0;
   }
 
   p {
-    color: #fff;
+    color: #333;
     margin: 0.5em 0;
   }
 
@@ -2145,7 +3030,7 @@ input::placeholder {
   }
 
   ul, ol {
-    color: #fff;
+    color: #333;
     margin: 0.5em 0;
     padding-left: 2em;
   }
@@ -2158,13 +3043,13 @@ input::placeholder {
     margin: 1em 0;
     padding: 1em;
     background: rgba(51, 51, 51, 0.6);
-    border-left: 4px solid #4b4bff;
+    border-left: 4px solid #00d4ff;
     border-radius: 4px;
     color: #666;
   }
 
   blockquote strong {
-    color: #4b4bff;
+    color: #00d4ff;
   }
 }
 
@@ -2187,13 +3072,13 @@ input::placeholder {
 }
 
 .expand-btn:hover {
-  color: #fff;
+  color: #333;
 }
 
 /* 搜索结果样式 */
 .search-result {
-  background: rgba(75, 75, 255, 0.05);
-  border: 1px solid rgba(75, 75, 255, 0.1);
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 8px;
   padding: 16px;
   margin: 12px 0;
@@ -2201,12 +3086,12 @@ input::placeholder {
 }
 
 .search-result:hover {
-  background: rgba(75, 75, 255, 0.1);
-  border-color: rgba(75, 75, 255, 0.2);
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.2);
 }
 
 .search-title {
-  color: #4b4bff;
+  color: #00d4ff;
   font-size: 16px;
   font-weight: 500;
   text-decoration: none;
@@ -2234,8 +3119,8 @@ input::placeholder {
 
 :deep(.message-content) {
   .search-result {
-    background: rgba(75, 75, 255, 0.05);
-    border: 1px solid rgba(75, 75, 255, 0.1);
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.1);
     border-radius: 8px;
     padding: 16px;
     margin: 12px 0;
@@ -2243,12 +3128,12 @@ input::placeholder {
   }
 
   .search-result:hover {
-    background: rgba(75, 75, 255, 0.1);
-    border-color: rgba(75, 75, 255, 0.2);
+    background: rgba(0, 212, 255, 0.1);
+    border-color: rgba(0, 212, 255, 0.2);
   }
 
   .search-title {
-    color: #4b4bff;
+    color: #00d4ff;
     font-size: 16px;
     font-weight: 500;
     text-decoration: none;
@@ -2279,7 +3164,7 @@ input::placeholder {
 .search-panel {
   width: 320px;
   height: 100vh;
-  background: #2d2d2d;
+  background: #141823;
   border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
@@ -2294,7 +3179,7 @@ input::placeholder {
 }
 
 .search-panel-header h3 {
-  color: #fff;
+  color: #333;
   font-size: 16px;
   margin: 0;
 }
@@ -2309,7 +3194,7 @@ input::placeholder {
 }
 
 .close-btn:hover {
-  color: #fff;
+  color: #333;
 }
 
 .search-results-list {
@@ -2333,8 +3218,8 @@ input::placeholder {
 }
 
 .search-result-item.active {
-  background: rgba(75, 75, 255, 0.05);
-  border-color: rgba(75, 75, 255, 0.2);
+  background: rgba(0, 212, 255, 0.05);
+  border-color: rgba(0, 212, 255, 0.2);
 }
 
 .result-header {
@@ -2349,7 +3234,7 @@ input::placeholder {
 }
 
 .source-name {
-  color: #fff;
+  color: #333;
   font-size: 13px;
 }
 
@@ -2360,7 +3245,7 @@ input::placeholder {
 }
 
 .result-title {
-  color: #fff;
+  color: #333;
   font-size: 14px;
   line-height: 1.4;
   margin-bottom: 4px;
@@ -2382,7 +3267,7 @@ input::placeholder {
 
 .result-link {
   display: inline-block;
-  color: #4b4bff;
+  color: #00d4ff;
   text-decoration: none;
   font-size: 13px;
   transition: all 0.2s ease;
@@ -2396,7 +3281,7 @@ input::placeholder {
 .result-detail-panel {
   flex: 1;
   height: 100vh;
-  background: #1e1e1e;
+  background: #0a0d14;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -2460,23 +3345,23 @@ input::placeholder {
 
 .detail-link {
   display: inline-block;
-  color: #4b4bff;
+  color: #00d4ff;
   text-decoration: none;
   font-size: 14px;
   padding: 8px 16px;
-  border: 1px solid #4b4bff;
+  border: 1px solid #00d4ff;
   border-radius: 4px;
   transition: all 0.2s ease;
 }
 
 .detail-link:hover {
-  background: rgba(75, 75, 255, 0.1);
+  background: rgba(0, 212, 255, 0.1);
 }
 
 /* 更新搜索加载状态样式 */
 :deep(.search-loading-container) {
-  background: rgba(75, 75, 255, 0.1);
-  border: 1px solid rgba(75, 75, 255, 0.3);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
   border-radius: 20px;
   padding: 0px 0px;
   margin: 12px 0;
@@ -2492,14 +3377,14 @@ input::placeholder {
 }
 
 :deep(.search-loading-container:hover) {
-  background: rgba(75, 75, 255, 0.2);
-  border-color: rgba(75, 75, 255, 0.4);
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.4);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 :deep(.search-loading-text) {
-  color: #4b4bff;
+  color: #00d4ff;
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -2508,25 +3393,56 @@ input::placeholder {
   padding: 4px 8px;
 }
 
-.thinking-process {
-  background: rgba(75, 75, 255, 0.05);
-  border: 1px solid rgba(75, 75, 255, 0.1);
+.thinking-details {
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
 }
 
-.thinking-header {
-  color: #4b4bff;
+.thinking-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
   font-size: 14px;
+  color: #4a90d9;
   font-weight: 500;
-  margin-bottom: 8px;
+  user-select: none;
+}
+
+.thinking-summary::-webkit-details-marker {
+  display: none;
+}
+
+.thinking-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a90d9;
+}
+
+.thinking-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: #999;
+}
+
+.thinking-details[open] .thinking-arrow {
+  transform: rotate(180deg);
 }
 
 .thinking-content {
-  color: #888;
+  color: #666;
   font-size: 14px;
   line-height: 1.6;
+  padding: 0 14px 14px;
 }
 
 .response-content {
@@ -2543,7 +3459,7 @@ input::placeholder {
   left: 0;
   right: 0;
   height: 40px;
-  background: linear-gradient(to bottom, transparent, #1e1e1e);
+  background: linear-gradient(to bottom, transparent, #fff);
   pointer-events: none;
   z-index: -1;
 }
@@ -2552,13 +3468,13 @@ input::placeholder {
 .file-info-container {
   margin-top: 12px;
   padding: 12px;
-  background: rgba(75, 75, 255, 0.05);
-  border: 1px solid rgba(75, 75, 255, 0.1);
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 8px;
 }
 
 .file-info-header {
-  color: #4b4bff;
+  color: #00d4ff;
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
@@ -2589,8 +3505,8 @@ input::placeholder {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: rgba(75, 75, 255, 0.05);
-  border: 1px solid rgba(75, 75, 255, 0.1);
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 8px;
   margin: 8px 0;
 }
@@ -2617,7 +3533,7 @@ input::placeholder {
 }
 
 :deep(.file-status) {
-  color: #4b4bff;
+  color: #00d4ff;
   font-size: 12px;
 }
 
@@ -2630,7 +3546,7 @@ input::placeholder {
 }
 
 .upload-status {
-  background: #2d2d2d;
+  background: #141823;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -2676,7 +3592,7 @@ input::placeholder {
 
 /* 文件上传消息样式 */
 :deep(.cefa5c26) {
-  background: #2d2d2d;
+  background: #141823;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -2823,17 +3739,21 @@ input::placeholder {
 .history-item {
   padding: 12px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  border-radius: 6px;
+  transition: all 0.2s ease;
+  border-radius: 8px;
   margin: 4px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
 }
 
 .history-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 212, 255, 0.15);
 }
 
 .history-item.active {
-  background-color: rgba(75, 75, 255, 0.2);
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.25);
 }
 
 .history-actions {
@@ -2881,7 +3801,7 @@ input::placeholder {
 }
 
 .modal-content {
-  background-color: #2d2d2d;
+  background-color: #141823;
   border-radius: 8px;
   padding: 20px;
   width: 100%;
@@ -2994,7 +3914,7 @@ button.delete-btn:hover {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: #4b4bff;
+  background-color: #00d4ff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
@@ -3016,7 +3936,7 @@ button.delete-btn:hover {
   bottom: 30px;
   width: 320px;
   height: 400px;
-  background-color: #2d2d2d;
+  background-color: #141823;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -3106,7 +4026,7 @@ button.delete-btn:hover {
 
 .popup-user-message {
   align-self: flex-end;
-  background-color: #4b4bff;
+  background-color: #00d4ff;
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -3155,7 +4075,7 @@ button.delete-btn:hover {
 }
 
 .popup-send-btn {
-  background-color: #4b4bff;
+  background-color: #00d4ff;
   border: none;
   color: white;
   width: 32px;
@@ -3169,7 +4089,7 @@ button.delete-btn:hover {
 }
 
 .popup-send-btn:hover {
-  background-color: #3a3aff;
+  background-color: #00b8e6;
 }
 
 .popup-send-btn:disabled {
@@ -3179,7 +4099,7 @@ button.delete-btn:hover {
 
 /* 在 popup-message 样式下添加加载状态样式 */
 .popup-message.popup-assistant-message:has(.loading-dots) {
-  background-color: #4b4bff20;
+  background-color: #00d4ff20;
 }
 
 .loading-dots {
@@ -3212,26 +4132,27 @@ button.delete-btn:hover {
 
 /* 电商客服按钮样式 */
 .ecommerce-btn {
-  background-color: #ff4d4f !important;
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%) !important;
   color: white !important;
   transition: all 0.3s ease;
+  border: none !important;
 }
 
 .ecommerce-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
 }
 
 .ecommerce-link {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 60%, #ff9c9d 100%);
+  background: linear-gradient(135deg, #00d4ff 0%, #6366f1 100%);
   border-radius: 12px;
   cursor: pointer;
   margin-bottom: 16px;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -3249,12 +4170,12 @@ button.delete-btn:hover {
 
 .ecommerce-link:hover {
   transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(255, 77, 79, 0.4);
+  box-shadow: 0 8px 16px rgba(0, 212, 255, 0.4);
 }
 
 .ecommerce-link:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
 }
 
 .ecommerce-icon {
@@ -3280,13 +4201,13 @@ button.delete-btn:hover {
   position: absolute;
   top: -6px;
   right: -6px;
-  background-color: #ffeb3b;
-  color: #d32f2f;
+  background-color: #fff;
+  color: #6366f1;
   font-size: 12px;
   font-weight: bold;
   padding: 2px 6px;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
   z-index: 3;
   transform: rotate(15deg);
 }
@@ -3295,36 +4216,73 @@ button.delete-btn:hover {
 :deep(.message-wrapper) {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
 }
 
-:deep(.thinking-process) {
-  background: rgba(75, 75, 255, 0.05);
+:deep(.thinking-details) {
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 8px;
-  padding: 2px;
-  margin-bottom: 16px;
-  position: relative;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+:deep(.thinking-summary) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  color: #4a90d9;
+  font-weight: 500;
+  user-select: none;
+}
+
+:deep(.thinking-summary::-webkit-details-marker) {
+  display: none;
+}
+
+:deep(.thinking-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a90d9;
+}
+
+:deep(.thinking-arrow) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: #999;
+}
+
+:deep(.thinking-details[open] .thinking-arrow) {
+  transform: rotate(180deg);
 }
 
 :deep(.thinking-content) {
   font-size: 14px;
   line-height: 1.6;
-  overflow: auto;
-  padding: 0;
+  padding: 0 14px 14px;
+  color: #666;
 }
 
 :deep(.thinking-content blockquote) {
   margin: 0;
   padding: 16px;
-  background: rgba(51, 51, 51, 0.4);
-  border-left: 4px solid #4b4bff;
+  background: rgba(0, 212, 255, 0.06);
+  border-left: 4px solid #00d4ff;
   border-radius: 0 8px 8px 0;
-  color: #e0e0e0;
+  color: #555;
 }
 
 :deep(.thinking-content strong) {
-  color: #4b4bff;
+  color: #4a90d9;
   font-weight: 600;
   display: block;
   margin-bottom: 8px;
@@ -3332,19 +4290,19 @@ button.delete-btn:hover {
 
 :deep(.thinking-content p) {
   margin: 8px 0;
-  color: #e0e0e0;
+  color: #666;
 }
 
 :deep(.thinking-content code) {
-  background: rgba(75, 75, 255, 0.1);
+  background: rgba(0, 212, 255, 0.08);
   padding: 2px 4px;
   border-radius: 4px;
-  color: #e0e0e0;
+  color: #4a90d9;
   font-family: monospace;
 }
 
 :deep(.thinking-content pre) {
-  background: rgba(51, 51, 51, 0.6);
+  background: rgba(0, 0, 0, 0.04);
   padding: 12px;
   border-radius: 4px;
   overflow-x: auto;
@@ -3354,6 +4312,7 @@ button.delete-btn:hover {
 :deep(.thinking-content pre code) {
   background: transparent;
   padding: 0;
+  color: #333;
 }
 
 :deep(.message-text) {

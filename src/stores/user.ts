@@ -16,11 +16,17 @@ export const useUserStore = defineStore('user', () => {
     document.documentElement.setAttribute('data-theme', theme.value)
   }
 
+  const reset = () => {
+    username.value = ''
+    email.value = ''
+  }
+
   return {
     username,
     email,
     theme,
     setUserInfo,
-    toggleTheme
+    toggleTheme,
+    reset
   }
 }) 
